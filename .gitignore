@@ -1,47 +1,48 @@
-# Android
-*.iml
-.gradle/
+```gitignore
+# Build artifacts
 build/
-/app/build/
-/local.properties
-/captures
-.externalNativeBuild/
-.cxx/
-*.apk
-*.aab
-*.ap_
-*.dex
-*.class
-
-# IDE
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-Thumbs.db
-
-# NDK
+dist/
 *.o
+*.obj
 *.so
-*.dylib
-*.dll
+*.a
 
-# Python
+# Dependencies
+node_modules/
+venv/
+.venv/
 __pycache__/
-*.pyc
 
-# Liboqs
-app/src/main/cpp/liboqs/
-
-# Native prebuilts
-build/libs/
-
-# Gradle wrapper
-gradle/wrapper/gradle-wrapper.properties
-
-# Logs
+# Logs and temp files
 *.log
+*.tmp
+*.swp
 
 # Environment
 .env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Gradle
+.gradle/
+target/
+
+# MyPy
+.mypy_cache/
+
+# Pytest
+.pytest_cache/
+```

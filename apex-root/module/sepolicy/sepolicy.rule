@@ -1,0 +1,42 @@
+# APEX-Root SELinux Policy Rules
+# Allows the module to perform necessary operations without triggering SELinux denials
+
+# Allow init to execute module scripts
+allow init system_file:file { execute read open getattr };
+
+# Allow zygote to load spoof library
+allow zygote system_file:file { read open getattr };
+allow zygote system_lib_file:file { read open getattr map };
+
+# Allow unconfined domain for module operations (use with caution)
+allow unconfineddomain system_file:dir { read write open getattr search };
+allow unconfineddomain system_file:file { read write open getattr create unlink };
+
+# Allow mounting operations for tmpfs overlays
+allow mount system_file:dir { read write open getattr search mounton };
+allow mount system_file:file { read write open getattr };
+allow mount tmpfs:filesystem { mount unmount relabelfrom relabelto };
+
+# Allow eBPF loading
+allow kernel system_file:file { read open getattr };
+allow kernel bpf:prog { load run };
+allow kernel bpf:map { create read write };
+
+# Allow property modifications
+allow init property_socket:sock_file { write getattr };
+allow unconfineddomain property_socket:sock_file { write getattr };
+
+# Allow reading /proc for process hiding
+allow unconfineddomain proc:dir { read open getattr search };
+allow unconfineddomain proc:file { read open getattr };
+
+# Allow kallsyms restriction
+allow kernel sysctl_kernel:file { read write open getattr };
+
+# Allow access to module directory
+allow unconfineddomain modules_file:dir { read write open getattr search add_name remove_name };
+allow unconfineddomain modules_file:file { read write open getattr create unlink };
+
+# Allow LD_PRELOAD injection
+allow zygote system_lib_file:file { read open getattr map execute };
+allow unconfineddomain system_lib_file:file { read open getattr map execute };
