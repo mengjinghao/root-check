@@ -59,6 +59,7 @@ fun DashboardScreen(
     onNavigateToFrida: (() -> Unit)? = null,
     onNavigateToLSPosed: (() -> Unit)? = null,
     onNavigateToPermissions: (() -> Unit)? = null,
+    onNavigateToLogs: (() -> Unit)? = null,
     apexViewModel: ApexViewModel? = null
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()

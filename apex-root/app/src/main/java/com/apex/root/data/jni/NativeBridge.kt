@@ -96,6 +96,12 @@ object NativeBridge {
         artEnhancedScanNative()
     }
 
+    // ─── Xposed 框架检测 ──────────────────────────────
+    /** Xposed / LSPosed / EdXposed 框架检测 */
+    fun detectXposedFramework(): Boolean = NativeLibraryLoader.safeCall(false) {
+        detectXposedFrameworkNative()
+    }
+
     // ─── L14: VirtualXposed / 太极 / 双开分身 ────────────
     fun detectVirtualXposed(): Boolean = NativeLibraryLoader.safeCall(false) {
         detectVirtualXposedNative()
@@ -260,6 +266,7 @@ object NativeBridge {
     // 已移除：detectSyscallTableHookNative — Ring0 检测
     private external fun detectSyscallResultInconsistencyNative(): Boolean
     private external fun artEnhancedScanNative(): String
+    private external fun detectXposedFrameworkNative(): Boolean
     // L14 / L15 / L16 native
     private external fun detectVirtualXposedNative(): Boolean
     private external fun detectTaiChiNative(): Boolean

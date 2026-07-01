@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.apex.root.viewmodel.trusted.LogEntry
+import com.apex.root.viewmodel.trusted.LogType
 
 private val DayAccent = Color(0xFF0D9488)
 private val DayAccentSoft = Color(0xFF2DD4BF)

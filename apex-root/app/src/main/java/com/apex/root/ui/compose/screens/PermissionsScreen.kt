@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import com.apex.root.core.permission.PermissionManager
 import com.apex.root.core.permission.PermissionManager.PermissionInfo
 import com.apex.root.core.permission.PermissionManager.PermState
@@ -199,7 +199,7 @@ private fun PermissionSummaryCard(granted: Int, total: Int, loading: Boolean) {
                     modifier = Modifier.fillMaxSize(),
                     strokeWidth = 5.dp,
                     color = if (allGranted) AccentMint else AccentPurple,
-                    backgroundColor = if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.06f)
+                    trackColor = if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.06f)
                 )
                 Text(
                     if (loading) "…" else "$granted/$total",

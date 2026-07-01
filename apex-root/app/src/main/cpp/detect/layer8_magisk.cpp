@@ -133,7 +133,7 @@ bool detectMagiskFiles() {
     };
     for (auto p = paths; *p; ++p) {
         int64_t ret;
-        ret = apex_check_access(p);
+        ret = apex_check_access(*p);
         if (ret == 0) return true;
     }
     return false;

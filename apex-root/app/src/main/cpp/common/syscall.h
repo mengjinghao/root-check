@@ -1,6 +1,9 @@
 #ifndef APEX_ROOT_SYSCALL_H
 #define APEX_ROOT_SYSCALL_H
 
+// int64_t 用于 apex_check_access 返回值；需包含 stdint
+#include <stdint.h>
+
 #ifndef AT_FDCWD
 #define AT_FDCWD (-100)
 #endif

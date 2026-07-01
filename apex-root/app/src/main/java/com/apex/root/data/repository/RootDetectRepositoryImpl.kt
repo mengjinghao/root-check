@@ -13,7 +13,7 @@ import com.apex.root.cure.NativeCure
 
 class RootDetectRepositoryImpl : com.apex.root.domain.repository.IRootDetectRepository {
 
-    fun runQuickScan(force: Boolean = false): ScanResult {
+    override fun runQuickScan(force: Boolean): ScanResult {
         // Cache check for quick scan
         if (!force) {
             DetectionCache.getString(DetectionCache.KEY_QUICK_SCAN)?.let { details ->
@@ -58,9 +58,9 @@ class RootDetectRepositoryImpl : com.apex.root.domain.repository.IRootDetectRepo
         )
     }
 
-    fun detectRootType(): RootType = RootType.fromValue(NativeCure.detectRootType())
+    override fun detectRootType(): RootType = RootType.fromValue(NativeCure.detectRootType())
 
-    fun applyCure(level: CureLevel): CureResult {
+    override fun applyCure(level: CureLevel): CureResult {
         val rootType = detectRootType()
         // Invalidate cache after cure
         DetectionCache.invalidateAll()
@@ -84,14 +84,14 @@ class RootDetectRepositoryImpl : com.apex.root.domain.repository.IRootDetectRepo
         )
     }
 
-    fun getGameModeState(): GameModeState {
+    override fun getGameModeState(): GameModeState {
         return GameModeState(
             active = NativeGameMode.isInGameMode(),
             hiddenProcesses = if (NativeGameMode.isInGameMode()) 5 else 0
         )
     }
 
-    fun toggleGameMode(): Boolean {
+    override fun toggleGameMode(): Boolean {
         return if (NativeGameMode.isInGameMode()) {
             NativeGameMode.exitGameMode()
         } else {
@@ -101,7 +101,7 @@ class RootDetectRepositoryImpl : com.apex.root.domain.repository.IRootDetectRepo
 
     // ─── Enhanced detection methods ─────────────────────
 
-    fun runDeepDetection(): String {
+    override fun runDeepDetection(): String {
         val sb = StringBuilder()
         sb.appendLine("=== APEX 深度检测报告 (Ring3 root 级) ===")
         sb.appendLine()
@@ -155,7 +155,7 @@ class RootDetectRepositoryImpl : com.apex.root.domain.repository.IRootDetectRepo
         return sb.toString()
     }
 
-    fun getMemoryFingerprintMask(): Int {
+    override fun getMemoryFingerprintMask(): Int {
         var mask = DetectionCache.getInt(DetectionCache.KEY_MEM_FINGERPRINT)
         if (mask == null) {
             mask = NativeBridge.fullMemoryFingerprint()
@@ -164,7 +164,7 @@ class RootDetectRepositoryImpl : com.apex.root.domain.repository.IRootDetectRepo
         return mask
     }
 
-    fun hasShamiko(): Boolean {
+    override fun hasShamiko(): Boolean {
         var result = DetectionCache.getBoolean(DetectionCache.KEY_SHAMIKO)
         if (result == null) {
             result = NativeBridge.detectShamiko()
@@ -173,7 +173,7 @@ class RootDetectRepositoryImpl : com.apex.root.domain.repository.IRootDetectRepo
         return result
     }
 
-    fun hasZygiskNext(): Boolean {
+    override fun hasZygiskNext(): Boolean {
         var result = DetectionCache.getBoolean(DetectionCache.KEY_ZYGISK_NEXT)
         if (result == null) {
             result = NativeBridge.detectZygiskNext()

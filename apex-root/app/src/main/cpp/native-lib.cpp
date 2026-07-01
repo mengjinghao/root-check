@@ -535,6 +535,12 @@ Java_com_apex_root_data_jni_NativeBridge_artEnhancedScanNative(JNIEnv* env, jobj
     return env->NewStringUTF(report);
 }
 
+// ─── Xposed 框架检测（layer11_hook.cpp::detectXposedFramework）──
+JNIEXPORT jboolean JNICALL
+Java_com_apex_root_data_jni_NativeBridge_detectXposedFrameworkNative(JNIEnv*, jobject) {
+    return detectXposedFramework();
+}
+
 // ─────────────────────────────────────────────────────────────
 // Firmware partition integrity
 // ─────────────────────────────────────────────────────────────

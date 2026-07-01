@@ -15,7 +15,7 @@ data class CachedResult(
     val numericValue: Int = 0,
     val booleanValue: Boolean = false,
     val timestampMs: Long = System.currentTimeMillis(),
-    val ttlMs: Long = DEFAULT_TTL_MS
+    val ttlMs: Long = 5000L
 )
 
 /**
