@@ -21,7 +21,7 @@
 [![C++](https://img.shields.io/badge/C%2B%2B-20-00599C?logo=cplusplus&logoColor=white)]()
 [![NDK](https://img.shields.io/badge/NDK-28.2-FF6F00?logo=androidndk&logoColor=white)]()
 [![License](https://img.shields.io/badge/License-Proprietary-red)]()
-[![Version](https://img.shields.io/badge/Version-3.1.0-00D4AA)]()
+[![Version](https://img.shields.io/badge/Version-1.0.0-00D4AA)]()
 
 <p>
   <strong>🔍 16 层深度检测 · 🛡️ 3 模式隐藏系统 · 🧬 后量子签名 · ⚡ 微服务架构</strong>
@@ -156,7 +156,7 @@
 
 #### 方式一：下载 APK（推荐）
 
-1. 前往 [Releases 页面](../../releases) 下载最新 `APEX-Root-v3.1.0.apk`
+1. 前往 [Releases 页面](../../releases) 下载最新 `APEX-Root-v1.0.0.apk`
 2. 在设备上启用"未知来源应用安装"
 3. 安装 APK
 4. 授予 root 权限（需 Magisk / KernelSU / APatch）
@@ -291,10 +291,10 @@ apex-root/
 
 | 版本 | 日期 | 主要变更 |
 |------|------|----------|
-| v3.1.0 | 2026-06 | 16 层检测 + 3 模式隐藏 + 后量子签名 + UI 重构 |
+| v1.0.0 | 2026-06 | 16 层检测 + 3 模式隐藏 + 后量子签名 + UI 重构 |
 | v3.0.0 | 2026-05 | Ring0→Ring3 迁移 + 微服务架构 |
 | v2.0.0 | 2026-03 | Compose UI 重写 + Liquid Glass |
-| v1.0.0 | 2026-01 | 初始版本 |
+| v0.9.0 | 2026-01 | 初始版本 |
 
 ---
 
@@ -423,7 +423,7 @@ Scoring is based on three core principles:
 
 #### Option 1: Download APK (Recommended)
 
-1. Go to [Releases page](../../releases) and download `APEX-Root-v3.1.0.apk`
+1. Go to [Releases page](../../releases) and download `APEX-Root-v1.0.0.apk`
 2. Enable "Install unknown apps" on your device
 3. Install the APK
 4. Grant root access (requires Magisk / KernelSU / APatch)
@@ -558,7 +558,7 @@ This application uses the following open-source components:
 
 | Version | Date | Major Changes |
 |---------|------|---------------|
-| v3.1.0 | 2026-06 | 16-layer detection + 3-mode hiding + post-quantum signing + UI overhaul |
+| v1.0.0 | 2026-06 | 16-layer detection + 3-mode hiding + post-quantum signing + UI overhaul |
 | v3.0.0 | 2026-05 | Ring0→Ring3 migration + microservice architecture |
 | v2.0.0 | 2026-03 | Compose UI rewrite + Liquid Glass |
 | v1.0.0 | 2026-01 | Initial release |

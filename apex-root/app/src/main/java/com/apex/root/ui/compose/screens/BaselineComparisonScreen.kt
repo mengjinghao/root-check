@@ -35,14 +35,7 @@ data class BaselineMetric(
 @Composable
 fun BaselineComparisonScreen(
     onBack: () -> Unit = {},
-    metrics: List<BaselineMetric> = listOf(
-        BaselineMetric("Syscall getpid", "110ns", "145ns", 1.32, "ns", true),
-        BaselineMetric("Syscall open", "420ns", "430ns", 1.02, "ns", false),
-        BaselineMetric("Cache 延迟", "80ns", "82ns", 1.03, "ns", false),
-        BaselineMetric("Binder 时延", "140μs", "220μs", 1.57, "μs", true),
-        BaselineMetric("中断时延", "580ns", "610ns", 1.05, "ns", false),
-        BaselineMetric("IPC", "2.8", "2.1", 0.75, "", true)
-    )
+    metrics: List<BaselineMetric> = emptyList(),
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
