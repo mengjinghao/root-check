@@ -19,6 +19,19 @@ data class CachedResult(
 )
 
 /**
+ * 缓存类型 — 差异化 TTL
+ */
+enum class CacheType(val ttlMs: Long) {
+    QUICK_SCAN(5_000),           // 快速检测：5 秒
+    RISK_SCORE(60_000),          // 风险评分：60 秒
+    DEVICE_FINGERPRINT(300_000), // 设备指纹：5 分钟
+    SELINUX_STATUS(30_000),      // SELinux 状态：30 秒
+    MEMORY_REPORT(10_000),       // 内存报告：10 秒
+    ROOT_STATUS(15_000),         // Root 状态：15 秒
+    DEFAULT(5_000);              // 默认：5 秒
+}
+
+/**
  * 检测缓存 — 线程安全实现
  *
  * 修复：
@@ -108,6 +121,21 @@ object DetectionCache {
 
     fun putInt(key: String, value: Int, ttlMs: Long = DEFAULT_TTL_MS) {
         put(key, CachedResult(key, value.toString(), numericValue = value, ttlMs = ttlMs))
+    }
+
+    /** 按缓存类型存储 */
+    fun putWithType(key: String, value: String, type: CacheType) {
+        put(key, CachedResult(key, value, ttlMs = type.ttlMs))
+    }
+
+    /** 按缓存类型存储 Boolean */
+    fun putWithType(key: String, value: Boolean, type: CacheType) {
+        put(key, CachedResult(key, if (value) "true" else "false", booleanValue = value, ttlMs = type.ttlMs))
+    }
+
+    /** 按缓存类型存储 Int */
+    fun putWithType(key: String, value: Int, type: CacheType) {
+        put(key, CachedResult(key, value.toString(), numericValue = value, ttlMs = type.ttlMs))
     }
 
     fun getString(key: String): String? = get(key)?.value
