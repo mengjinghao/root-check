@@ -10,12 +10,24 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicLong
 import android.util.Log
 
+/**
+ * 修复版 SecureSocketClient
+ *
+ * 修复内容：
+ * 1. 移除 runBlocking — 改为 suspend fun，避免主线程 ANR
+ * 2. 添加自动重连机制（指数退避，最多 5 次）
+ * 3. 正确管理 CoroutineScope 生命周期
+ * 4. 连接断开时自动清理资源
+ */
 class SecureSocketClient(
     private val socketName: String,
+    private val scope: CoroutineScope,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
     companion object {
         private const val TAG = "SecureSocketClient"
+        private const val MAX_RECONNECT_ATTEMPTS = 5
+        private const val INITIAL_BACKOFF_MS = 1000L
     }
 
     private var socket: LocalSocket? = null
@@ -23,8 +35,10 @@ class SecureSocketClient(
     private var writer: BufferedWriter? = null
     private val sequenceNumber = AtomicLong(0)
     private val messageQueue = ConcurrentLinkedQueue<ByteArray>()
+
+    private val clientScope = CoroutineScope(scope.coroutineContext + SupervisorJob())
+    private var readerJob: Job? = null
     private var isRunning = false
-    private var job: Job? = null
 
     private val _messages = MutableSharedFlow<ByteArray>(replay = 0, extraBufferCapacity = 64)
     val messages: SharedFlow<ByteArray> = _messages.asSharedFlow()
@@ -32,31 +46,48 @@ class SecureSocketClient(
     private val _connectionState = MutableStateFlow(false)
     val connectionState: StateFlow<Boolean> = _connectionState.asStateFlow()
 
-    fun connect(): Boolean = runBlocking {
-        withContext(dispatcher) {
-            try {
-                val localSocket = LocalSocket()
-                val address = LocalSocketAddress(socketName, LocalSocketAddress.Namespace.RESERVED)
-                localSocket.connect(address)
-                socket = localSocket
-                reader = BufferedReader(InputStreamReader(localSocket.inputStream))
-                writer = BufferedWriter(OutputStreamWriter(localSocket.outputStream))
-                isRunning = true
-                _connectionState.value = true
-                startReader()
-                Log.i(TAG, "Connected to $socketName")
-                true
-            } catch (e: Exception) {
-                Log.e(TAG, "Connection failed: ${e.message}")
-                _connectionState.value = false
-                false
-            }
+    /**
+     * 连接到 socket（suspend，不在主线程阻塞）
+     */
+    suspend fun connect(): Boolean = withContext(dispatcher) {
+        try {
+            val localSocket = LocalSocket()
+            val address = LocalSocketAddress(socketName, LocalSocketAddress.Namespace.RESERVED)
+            localSocket.connect(address)
+            socket = localSocket
+            reader = BufferedReader(InputStreamReader(localSocket.inputStream))
+            writer = BufferedWriter(OutputStreamWriter(localSocket.outputStream))
+            isRunning = true
+            _connectionState.value = true
+            startReader()
+            Log.i(TAG, "Connected to $socketName")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Connection failed: ${e.message}")
+            _connectionState.value = false
+            false
         }
     }
 
+    /**
+     * 自动重连（指数退避）
+     */
+    suspend fun reconnectWithBackoff(): Boolean {
+        var backoff = INITIAL_BACKOFF_MS
+        repeat(MAX_RECONNECT_ATTEMPTS) { attempt ->
+            Log.i(TAG, "Reconnect attempt ${attempt + 1}/$MAX_RECONNECT_ATTEMPTS (backoff=${backoff}ms)")
+            delay(backoff)
+            cleanup()
+            if (connect()) return true
+            backoff *= 2 // 指数退避
+        }
+        Log.e(TAG, "Reconnect failed after $MAX_RECONNECT_ATTEMPTS attempts")
+        return false
+    }
+
     private fun startReader() {
-        job = CoroutineScope(dispatcher + SupervisorJob()).launch {
-            while (isRunning) {
+        readerJob = clientScope.launch {
+            while (isRunning && isActive) {
                 try {
                     val line = reader?.readLine() ?: break
                     val data = decodeHex(line)
@@ -67,37 +98,48 @@ class SecureSocketClient(
                     break
                 }
             }
-        }
-    }
-
-    suspend fun send(data: ByteArray): Boolean {
-        return withContext(dispatcher) {
-            try {
-                val seq = sequenceNumber.incrementAndGet()
-                val header = ByteBuffer.allocate(12).putLong(seq).putInt(data.size).array()
-                val payload = header + data
-                writer?.write(encodeHex(payload))
-                writer?.newLine()
-                writer?.flush()
-                true
-            } catch (e: Exception) {
-                Log.e(TAG, "Send error: ${e.message}")
-                _connectionState.value = false
-                false
+            // 读取结束 — 尝试自动重连
+            if (isRunning) {
+                Log.w(TAG, "Connection lost, attempting reconnect...")
+                clientScope.launch { reconnectWithBackoff() }
             }
         }
     }
 
-    fun disconnect() {
+    suspend fun send(data: ByteArray): Boolean = withContext(dispatcher) {
+        try {
+            val seq = sequenceNumber.incrementAndGet()
+            val header = ByteBuffer.allocate(12).putLong(seq).putInt(data.size).array()
+            val payload = header + data
+            writer?.write(encodeHex(payload))
+            writer?.newLine()
+            writer?.flush()
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Send error: ${e.message}")
+            _connectionState.value = false
+            false
+        }
+    }
+
+    /**
+     * 断开连接（suspend，不阻塞主线程）
+     */
+    suspend fun disconnect() {
         isRunning = false
-        job?.cancel()
-        runBlocking {
-            withContext(dispatcher) {
-                try {
-                    socket?.close()
-                } catch (_: Exception) {}
-            }
-        }
+        readerJob?.cancelAndJoin()
+        cleanup()
+        clientScope.cancel()
+    }
+
+    private fun cleanup() {
+        try { socket?.close() } catch (_: Exception) {}
+        try { reader?.close() } catch (_: Exception) {}
+        try { writer?.close() } catch (_: Exception) {}
+        socket = null
+        reader = null
+        writer = null
+        _connectionState.value = false
     }
 
     private fun encodeHex(data: ByteArray): String =

@@ -35,8 +35,8 @@ android {
         applicationId = "com.apex.root"
         minSdk = 29
         targetSdk = 34
-        versionCode = 102
-        versionName = "1.0.2"
+        versionCode = 103
+        versionName = "1.0.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {

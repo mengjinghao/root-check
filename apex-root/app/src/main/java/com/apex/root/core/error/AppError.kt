@@ -17,15 +17,10 @@ sealed class AppError : Throwable() {
         override val message: String = "$feature 需要 Root 权限"
     ) : AppError()
 
-    /** 网络错误 */
-    data class NetworkError(
-        override val message: String = "网络连接失败",
-        val cause: Throwable? = null
-    ) : AppError()
-
     /** IPC 通信错误 */
     data class IpcError(
-        override val message: String = "IPC 通信失败"
+        override val message: String = "IPC 通信失败",
+        val socketName: String? = null
     ) : AppError()
 
     /** 权限不足 */
@@ -39,11 +34,31 @@ sealed class AppError : Throwable() {
         override val message: String = "缓存已过期，请重新扫描"
     ) : AppError()
 
+    /** 网络错误 */
+    data class NetworkError(
+        override val message: String = "网络连接失败",
+        val cause: Throwable? = null
+    ) : AppError()
+
     /** 未知错误 */
     data class Unknown(
         override val message: String = "未知错误",
         val cause: Throwable? = null
     ) : AppError()
+
+    /**
+     * 用户友好消息（用于 UI 显示）
+     */
+    val userMessage: String
+        get() = when (this) {
+            is NativeLibraryNotAvailable -> "应用原生库未加载，检测功能不可用。请确认设备架构为 ARM64。"
+            is RootRequired -> "「$feature」需要 Root 权限才能使用。"
+            is IpcError -> "守护进程通信失败，请重启应用。"
+            is PermissionDenied -> "需要授予 $permission 权限。"
+            is CacheExpired -> "数据已过期，请重新扫描。"
+            is NetworkError -> "网络连接异常，请检查网络后重试。"
+            is Unknown -> "操作失败，请稍后重试。"
+        }
 
     /**
      * 是否可重试
