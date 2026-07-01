@@ -30,6 +30,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = viewModel(),
     apexViewModel: ApexViewModel? = null,
     onNavigateToLogs: (() -> Unit)? = null,
+    onNavigateToPermissions: (() -> Unit)? = null,
     onBack: (() -> Unit)? = null
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -280,7 +281,7 @@ fun SettingsScreen(
             SystemIntegrityGroup(settings, viewModel)
             Spacer(Modifier.height(24.dp))
 
-            AboutGroup(apexViewModel, onNavigateToLogs)
+            AboutGroup(apexViewModel, onNavigateToLogs, onNavigateToPermissions)
             Spacer(Modifier.height(40.dp))
         }
     }
@@ -5132,9 +5133,17 @@ private fun SystemIntegrityGroup(settings: AppSettings, vm: SettingsViewModel) {
 @Composable
 private fun AboutGroup(
     apexViewModel: ApexViewModel? = null,
-    onNavigateToLogs: (() -> Unit)? = null
+    onNavigateToLogs: (() -> Unit)? = null,
+    onNavigateToPermissions: (() -> Unit)? = null
 ) {
     GlassSettingsGroup(title = "关于") {
+        GlassSettingsItem(
+            label = "权限管理",
+            subtitle = "ROOT / 存储 / 无障碍 / 通知等权限状态",
+            icon = Icons.Default.VerifiedUser,
+            accentColor = AccentPurple,
+            onClick = { onNavigateToPermissions?.invoke() }
+        )
         GlassSettingsItem(
             label = "版本信息",
             subtitle = "APEX-Root v1.0.3",

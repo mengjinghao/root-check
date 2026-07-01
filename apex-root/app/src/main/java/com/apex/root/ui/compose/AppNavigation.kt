@@ -44,6 +44,7 @@ import com.apex.root.ui.compose.screens.HideModeScreen
 import com.apex.root.ui.compose.screens.HistoryScreen
 import com.apex.root.ui.compose.screens.KernelInfoScreen
 import com.apex.root.ui.compose.screens.LSPosedManagerScreen
+import com.apex.root.ui.compose.screens.PermissionsScreen
 import com.apex.root.ui.compose.screens.ReportScreen
 import com.apex.root.ui.compose.screens.SettingsScreen
 import com.apex.root.ui.compose.screens.SplashScreen
@@ -207,6 +208,7 @@ private fun MainApp(
                         onNavigateToAbout = { navController.navigate("about") },
                         onNavigateToFrida = { navController.navigate("frida_console") },
                         onNavigateToLSPosed = { navController.navigate("lsposed_manager") },
+                        onNavigateToPermissions = { navController.navigate("permissions") },
                         apexViewModel = apexViewModel
                     )
                 }
@@ -245,6 +247,7 @@ private fun MainApp(
                         viewModel = settingsViewModel,
                         apexViewModel = apexViewModel,
                         onNavigateToLogs = { navController.navigate("log_viewer") },
+                        onNavigateToPermissions = { navController.navigate("permissions") },
                         onBack = { navController.popBackStack() }
                     )
                 }
@@ -356,6 +359,15 @@ private fun MainApp(
                     exitTransition = { slideOutHorizontally(targetOffsetX = { it }) + fadeOut(tween(300)) }
                 ) {
                     LSPosedManagerScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                composable(
+                    route = "permissions",
+                    enterTransition = { slideInHorizontally(initialOffsetX = { it }) + fadeIn(tween(300)) },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { it }) + fadeOut(tween(300)) }
+                ) {
+                    PermissionsScreen(
                         onBack = { navController.popBackStack() }
                     )
                 }

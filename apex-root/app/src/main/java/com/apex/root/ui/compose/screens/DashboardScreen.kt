@@ -58,6 +58,7 @@ fun DashboardScreen(
     onNavigateToAbout: (() -> Unit)? = null,
     onNavigateToFrida: (() -> Unit)? = null,
     onNavigateToLSPosed: (() -> Unit)? = null,
+    onNavigateToPermissions: (() -> Unit)? = null,
     apexViewModel: ApexViewModel? = null
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -113,6 +114,13 @@ fun DashboardScreen(
                     GlassSkeletonCard()
                     Spacer(Modifier.height(12.dp))
                 }
+
+                // ── 顶部「运行中」状态条：高斯玻璃 + 版本号 + 引擎状态 ──
+                RunningStatusBar(
+                    nativeAvailable = uiState.nativeAvailable,
+                    onNavigateToPermissions = onNavigateToPermissions
+                )
+                Spacer(Modifier.height(12.dp))
 
                 GlassGaugeScoreCard(score = uiState.riskScore, label = scoreLabel)
 
@@ -353,6 +361,9 @@ fun DashboardScreen(
                     ToolChip("详细配置", Icons.Default.Tune, AccentGold, onNavigateToConfig)
                     ToolChip("隐藏模式", Icons.Default.VisibilityOff, AccentPurple, onNavigateToHideMode)
                     ToolChip("关于", Icons.Default.Info, AccentMint, onNavigateToAbout)
+                }
+                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    ToolChip("权限中心", Icons.Default.VerifiedUser, AccentPurple, onNavigateToPermissions)
                     ToolChip("Frida", Icons.Default.BugReport, ErrorRed, onNavigateToFrida)
                     ToolChip("模块", Icons.Default.Extension, AccentGold, onNavigateToLSPosed)
                 }
@@ -709,5 +720,129 @@ private fun MiniTerminalCard(
             )
         }
         Spacer(Modifier.height(4.dp))
+    }
+}
+
+/**
+ * 顶部「运行中」状态条。
+ *
+ * 高斯玻璃（liquidGlass）+ 圆角的精致状态条，置于主界面顶部：
+ *  - 左侧：脉动绿点 + "运行中" 文本 + 引擎就绪状态
+ *  - 右侧：版本号 + 点击进入权限中心
+ */
+@Composable
+private fun RunningStatusBar(
+    nativeAvailable: Boolean,
+    onNavigateToPermissions: (() -> Unit)?
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val isDark = LocalIsDarkTheme.current
+
+    // 读取版本号
+    val versionName = remember {
+        try {
+            val pm = context.packageManager
+            pm.getPackageInfo(context.packageName, 0).versionName ?: "1.0.3"
+        } catch (e: Throwable) {
+            "1.0.3"
+        }
+    }
+
+    // 脉动动画
+    val transition = rememberInfiniteTransition(label = "runStatus")
+    val pulseAlpha by transition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = androidx.compose.animation.core.LinearEasing),
+            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
+    val pulseScale by transition.animateFloat(
+        initialValue = 0.85f,
+        targetValue = 1.15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = androidx.compose.animation.core.LinearEasing),
+            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+        ),
+        label = "pulseScale"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .height(52.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .liquidGlass(
+                cornerRadius = 18.dp,
+                baseColor = if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.025f)
+            )
+            .clickable(
+                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                indication = null
+            ) { onNavigateToPermissions?.invoke() }
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 脉动状态点
+            Box(
+                modifier = Modifier.size((10 * pulseScale).dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    Modifier
+                        .size(8.dp)
+                        .background(AccentMint.copy(alpha = pulseAlpha), CircleShape)
+                )
+            }
+            Spacer(Modifier.width(10.dp))
+            // 运行中
+            Text(
+                "运行中",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary
+            )
+            Spacer(Modifier.width(8.dp))
+            // 引擎状态
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(
+                        if (nativeAvailable) AccentMint.copy(alpha = 0.14f) else AccentGold.copy(alpha = 0.14f)
+                    )
+                    .padding(horizontal = 7.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    if (nativeAvailable) "引擎就绪" else "引擎降级",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (nativeAvailable) AccentMint else AccentGold
+                )
+            }
+            Spacer(Modifier.weight(1f))
+            // 版本号
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "v$versionName",
+                    fontSize = 12.sp,
+                    color = TextTertiary,
+                    fontFamily = FontFamily.Monospace
+                )
+                Spacer(Modifier.width(8.dp))
+                Icon(
+                    Icons.Default.ChevronRight,
+                    contentDescription = "权限中心",
+                    tint = TextTertiary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
     }
 }
