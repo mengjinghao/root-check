@@ -23,11 +23,7 @@ import com.apex.root.ui.compose.*
 @Composable
 fun WhitelistScreen(
     onBack: () -> Unit = {},
-    whitelist: List<String> = listOf(
-        "com.google.android.gms",
-        "com.android.systemui",
-        "com.android.phone"
-    ),
+    whitelist: List<String> = emptyList(),
     onAddPackage: (String) -> Unit = {},
     onRemovePackage: (String) -> Unit = {}
 ) {

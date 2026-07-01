@@ -561,126 +561,35 @@ private fun GlobalSettingToggle(label: String, desc: String, checked: Boolean, o
 
 @Composable
 private fun ResultsPanel() {
-    val detectionResult = remember {
-        DetectionResult(
-            rootDetected = true,
-            riskScore = 72,
-            threatLevel = "HIGH",
-            enabledItems = 12,
-            totalItems = 14,
-            elapsedMs = 2340,
-            layerResults = listOf(
-                LayerResult("检查 su 路径 /system/xbin/su", true),
-                LayerResult("检查 Magisk 进程", true),
-                LayerResult("检查 SELinux 状态", false),
-                LayerResult("检查 ro.debuggable 属性", false)
-            )
-        )
-    }
-    val hideReport = remember {
-        HideReport(
-            overallSuccess = true,
-            successCount = 5,
-            failCount = 1,
-            results = listOf(
-                HideResult("hide_su", "su 路径已隐藏", true),
-                HideResult("hide_magisk", "Magisk 路径已屏蔽", true),
-                HideResult("hide_prop", "属性已修改", true),
-                HideResult("hide_proc", "进程已隐藏", true),
-                HideResult("hide_mount", "挂载信息已屏蔽", true),
-                HideResult("hide_selinux", "SELinux 伪装成功", false)
-            )
-        )
-    }
-
+    // 修复：移除 mock 数据，改为空状态提示
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        if (detectionResult != null) {
-            item {
-                val bgColor = when {
-                    detectionResult.threatLevel == "CRITICAL" || detectionResult.threatLevel == "HIGH" -> ErrorRed
-                    detectionResult.threatLevel == "MEDIUM" -> AccentGold
-                    else -> AccentMint
-                }
-                GlassCard(cornerRadius = 16.dp, accentLine = bgColor) {
-                    SectionHeader(title = "检测结果")
+        item {
+            GlassCard(cornerRadius = 16.dp) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        Icons.Default.Assessment,
+                        contentDescription = null,
+                        tint = TextTertiary,
+                        modifier = Modifier.size(48.dp)
+                    )
                     Spacer(Modifier.height(12.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                        StatText("风险", "${detectionResult.riskScore}")
-                        StatText("威胁", detectionResult.threatLevel)
-                        StatText("耗时", "${detectionResult.elapsedMs}ms")
-                        StatText("启用", "${detectionResult.enabledItems}/${detectionResult.totalItems}")
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            if (detectionResult.rootDetected) Icons.Default.Warning else Icons.Default.CheckCircle,
-                            null, tint = if (detectionResult.rootDetected) ErrorRed else AccentMint,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            if (detectionResult.rootDetected) "检测到 Root 环境" else "设备环境安全",
-                            fontWeight = FontWeight.Bold,
-                            color = if (detectionResult.rootDetected) ErrorRed else AccentMint,
-                            fontSize = 14.sp
-                        )
-                    }
-                    if (detectionResult.layerResults.isNotEmpty()) {
-                        Spacer(Modifier.height(12.dp))
-                        Text("检测明细 (${detectionResult.layerResults.size} 项):", fontSize = 11.sp, color = TextTertiary)
-                        Spacer(Modifier.height(4.dp))
-                        detectionResult.layerResults.forEach { r ->
-                            Row(
-                                modifier = Modifier.padding(vertical = 2.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    if (r.detected) Icons.Default.Warning else Icons.Default.CheckCircle,
-                                    null, tint = if (r.detected) ErrorRed else AccentMint,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(Modifier.width(6.dp))
-                                Text(r.detail, fontSize = 11.sp, color = TextSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            }
-                        }
-                    }
+                    Text("暂无检测结果", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "前往仪表盘执行扫描后，结果将显示在这里",
+                        fontSize = 12.sp,
+                        color = TextTertiary,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
                 }
             }
         }
-
-        if (hideReport != null) {
-            item {
-                val hideColor = if (hideReport.overallSuccess) AccentMint else AccentGold
-                GlassCard(cornerRadius = 16.dp, accentLine = hideColor) {
-                    SectionHeader(title = "隐藏结果")
-                    Spacer(Modifier.height(12.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                        StatText("成功", "${hideReport.successCount}")
-                        StatText("失败", "${hideReport.failCount}")
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    hideReport.results.forEach { r ->
-                        Row(
-                            modifier = Modifier.padding(vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                if (r.success) Icons.Default.CheckCircle else Icons.Default.Warning,
-                                null, tint = if (r.success) AccentMint else AccentGold,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(Modifier.width(6.dp))
-                            Text("${r.itemId}: ${r.detail}", fontSize = 11.sp, color = TextSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        }
-                    }
-                }
-            }
-        }
-
-        item { Spacer(Modifier.height(32.dp)) }
     }
 }
 
