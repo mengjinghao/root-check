@@ -16,7 +16,7 @@ object ReportExporter {
 
     data class ExportReport(
         val appName: String = "APEX Root",
-        val version: String = "3.1.0",
+        val version: String = "1.0.1",
         val timestamp: String = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date()),
         val riskScore: Int = 0,
         val scanResult: String = "",

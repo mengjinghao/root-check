@@ -292,8 +292,6 @@ apex-root/
 | 版本 | 日期 | 主要变更 |
 |------|------|----------|
 | v1.0.0 | 2026-06 | 16 层检测 + 3 模式隐藏 + 后量子签名 + UI 重构 |
-| v3.0.0 | 2026-05 | Ring0→Ring3 迁移 + 微服务架构 |
-| v2.0.0 | 2026-03 | Compose UI 重写 + Liquid Glass |
 | v0.9.0 | 2026-01 | 初始版本 |
 
 ---
@@ -559,8 +557,6 @@ This application uses the following open-source components:
 | Version | Date | Major Changes |
 |---------|------|---------------|
 | v1.0.0 | 2026-06 | 16-layer detection + 3-mode hiding + post-quantum signing + UI overhaul |
-| v3.0.0 | 2026-05 | Ring0→Ring3 migration + microservice architecture |
-| v2.0.0 | 2026-03 | Compose UI rewrite + Liquid Glass |
 | v1.0.0 | 2026-01 | Initial release |
 
 ---

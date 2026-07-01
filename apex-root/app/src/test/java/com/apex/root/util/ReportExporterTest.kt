@@ -31,7 +31,7 @@ class ReportExporterTest {
         assertTrue(json.endsWith("}\n"))
         assertTrue(json.contains("\"riskScore\": 10"))
         assertTrue(json.contains("\"appName\": \"APEX Root\""))
-        assertTrue(json.contains("\"version\": \"3.1.0\""))
+        assertTrue(json.contains("\"version\": \"1.0.1\""))
     }
 
     @Test
@@ -73,7 +73,7 @@ class ReportExporterTest {
     fun `ExportReport has default values`() {
         val report = ReportExporter.ExportReport()
         assertEquals("APEX Root", report.appName)
-        assertEquals("3.1.0", report.version)
+        assertEquals("1.0.1", report.version)
         assertEquals(0, report.riskScore)
     }
 }
