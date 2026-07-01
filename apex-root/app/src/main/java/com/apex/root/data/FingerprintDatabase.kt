@@ -26,6 +26,9 @@ class FingerprintDatabase(private val context: Context) {
         private const val GCM_TAG_LENGTH = 128 // bits
 
         private var instance: FingerprintDatabase? = null
+        // 修复：原 getInstance 非线程安全，并发调用可能创建多个实例或读到半初始化对象。
+        // 改为 @Synchronized 保证原子性。
+        @Synchronized
         fun getInstance(context: Context): FingerprintDatabase {
             if (instance == null) {
                 instance = FingerprintDatabase(context.applicationContext)

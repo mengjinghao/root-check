@@ -134,6 +134,12 @@ object NativeBridge {
         detectCrackingToolsNative()
     }
 
+    // ─── Frida 检测 ────────────────────────────────────
+    /** Frida 二进制 / 内存痕迹 / 端口检测（合并布尔结果） */
+    fun detectFrida(): Boolean = NativeLibraryLoader.safeCall(false) {
+        detectFridaNative()
+    }
+
     fun dangerousAppsFullScan(): String = NativeLibraryLoader.safeCall("") {
         dangerousAppsFullScanNative()
     }
@@ -264,6 +270,7 @@ object NativeBridge {
     private external fun detectLuckyPatcherNative(): Boolean
     private external fun detectMemoryEditorsNative(): Boolean
     private external fun detectCrackingToolsNative(): Boolean
+    private external fun detectFridaNative(): Boolean
     private external fun dangerousAppsFullScanNative(): String
     private external fun detectMagiskDenyListNative(): Boolean
     private external fun detectZygiskModulesNative(): Boolean

@@ -37,13 +37,13 @@ sealed class AppError : Throwable() {
     /** 网络错误 */
     data class NetworkError(
         override val message: String = "网络连接失败",
-        val cause: Throwable? = null
+        val originalCause: Throwable? = null
     ) : AppError()
 
     /** 未知错误 */
     data class Unknown(
         override val message: String = "未知错误",
-        val cause: Throwable? = null
+        val originalCause: Throwable? = null
     ) : AppError()
 
     /**

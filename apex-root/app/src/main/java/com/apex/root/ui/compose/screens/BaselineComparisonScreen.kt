@@ -140,7 +140,9 @@ private fun DeviationChart(metrics: List<BaselineMetric>) {
                 .padding(16.dp)
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
-                val maxDev = metrics.maxOf { it.deviation }.coerceAtLeast(2.0)
+                // 修复：metrics 为空时 maxOf 抛 NoSuchElementException → 打开页面即闪退
+                if (metrics.isEmpty()) return@Canvas
+                val maxDev = (metrics.maxOfOrNull { it.deviation } ?: 0.0).coerceAtLeast(2.0)
                 val barWidth = size.width / metrics.size * 0.55f
                 val gap = size.width / metrics.size * 0.45f
 

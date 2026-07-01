@@ -132,6 +132,17 @@ class SecureSocketClient(
         clientScope.cancel()
     }
 
+    /**
+     * 非挂起的立即关闭（用于 onCleared 等不能调用 suspend 的场景）。
+     * 同步关闭 socket / reader / writer，并取消 reader job（不等待 join）。
+     */
+    fun closeNow() {
+        isRunning = false
+        readerJob?.cancel()
+        cleanup()
+        clientScope.cancel()
+    }
+
     private fun cleanup() {
         try { socket?.close() } catch (_: Exception) {}
         try { reader?.close() } catch (_: Exception) {}
@@ -145,6 +156,15 @@ class SecureSocketClient(
     private fun encodeHex(data: ByteArray): String =
         data.joinToString("") { "%02x".format(it) }
 
-    private fun decodeHex(hex: String): ByteArray =
-        hex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+    private fun decodeHex(hex: String): ByteArray {
+        // 修复：原 it.toInt(16) 在非法输入时抛 NumberFormatException（RuntimeException），
+        // 逃逸了 startReader 里的 catch(IOException) → reader 协程崩溃。
+        // 改为返回空数组，让上层跳过该帧。
+        if (hex.length % 2 != 0) return ByteArray(0)
+        return try {
+            hex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+        } catch (_: NumberFormatException) {
+            ByteArray(0)
+        }
+    }
 }

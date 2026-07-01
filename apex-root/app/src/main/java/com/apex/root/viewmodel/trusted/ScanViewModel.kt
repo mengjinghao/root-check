@@ -28,27 +28,34 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
     private val _progress = MutableStateFlow(0f)
     val progress: StateFlow<Float> = _progress.asStateFlow()
 
-    private val client = SecureSocketClient("apex_root_sandbox")
+    // 修复：SecureSocketClient 需要 scope 参数（原构造仅传 socketName 会导致编译失败）
+    private val client = SecureSocketClient("apex_root_sandbox", viewModelScope)
 
     init {
         viewModelScope.launch {
-            client.messages.collect { data ->
-                handleMessage(data)
+            try {
+                client.messages.collect { data ->
+                    handleMessage(data)
+                }
+            } catch (e: Throwable) {
+                _uiState.value = UiState.Error("IPC 消息流异常: ${e.message ?: e.javaClass.simpleName}")
             }
         }
         viewModelScope.launch {
-            client.connectionState.collect { connected ->
-                if (!connected && _uiState.value !is UiState.Idle) {
-                    _uiState.value = UiState.Error("IPC connection lost")
+            try {
+                client.connectionState.collect { connected ->
+                    if (!connected && _uiState.value !is UiState.Idle) {
+                        _uiState.value = UiState.Error("IPC connection lost")
+                    }
                 }
-            }
+            } catch (_: Throwable) {}
         }
     }
 
     fun connect() {
         _uiState.value = UiState.Connecting
         viewModelScope.launch {
-            val ok = client.connect()
+            val ok = try { client.connect() } catch (_: Throwable) { false }
             if (!ok) {
                 _uiState.value = UiState.Error("Failed to connect to sandbox")
             } else {
@@ -70,7 +77,11 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
                 timestamp = System.currentTimeMillis()
             )
 
-            client.send(encodeScanTask(task))
+            try {
+                client.send(encodeScanTask(task))
+            } catch (e: Throwable) {
+                _uiState.value = UiState.Error("发送扫描任务失败: ${e.message ?: e.javaClass.simpleName}")
+            }
         }
     }
 
@@ -114,7 +125,11 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     override fun onCleared() {
-        client.disconnect()
+        // 修复：client.disconnect() 是 suspend fun，不能在非 suspend 的 onCleared() 直接调用。
+        // 改用非挂起的 closeNow()，同步关闭 socket/reader/writer 并取消 reader job。
+        try {
+            client.closeNow()
+        } catch (_: Throwable) {}
         super.onCleared()
     }
 }

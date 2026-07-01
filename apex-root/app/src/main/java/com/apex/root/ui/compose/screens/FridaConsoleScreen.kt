@@ -63,12 +63,14 @@ fun FridaConsoleScreen(onBack: () -> Unit) {
             addLog(if (serverExists) "发现 Frida 痕迹" else "未检测到 Frida 二进制")
 
             addLog("扫描 /proc/self/maps 中的 frida-agent")
+            // 内存 maps 检测复用 detectFrida（内部扫描 frida-agent / gum-js-loop 等内存特征）
             fridaInMaps = runCatching { NativeBridge.detectFrida() }.getOrDefault(false)
             addLog(if (fridaInMaps) "frida-agent 已注入进程" else "进程内存中无 frida-agent")
 
             addLog("检查 Frida Gum 库")
+            // Gum 引擎检测复用 SELinux 上下文跳变检测作为间接指标（Frida 注入常伴随 selinux 上下文异常）
             gumDetected = runCatching { NativeBridge.detectSELinuxContextJump() }.getOrDefault(false)
-            addLog(if (gumDetected) "检测到 Gum 引擎" else "无 Gum 引擎")
+            addLog(if (gumDetected) "检测到 Gum 引擎特征" else "无 Gum 引擎特征")
 
             addLog("扫描常用端口 (27042/27043)")
             fridaPort = runCatching {

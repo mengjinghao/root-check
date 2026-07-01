@@ -107,22 +107,36 @@ object ReportExporter {
     }
 
     fun shareReport(context: Context, uiState: ApexUiState) {
-        val json = exportToJson(uiState)
-        val file = File(context.cacheDir, "apex_report_${System.currentTimeMillis()}.json")
-        file.writeText(json)
+        // 修复：原方法在主线程执行 file.writeText（StrictMode penalty）且未捕获
+        // FileProvider.getUriForFile(IllegalArgumentException) 与
+        // startActivity(ActivityNotFoundException) → 闪退。
+        // 现改为全程 try-catch，失败时仅记录，不崩溃。
+        try {
+            val json = exportToJson(uiState)
+            val file = File(context.cacheDir, "apex_report_${System.currentTimeMillis()}.json")
+            file.writeText(json)
 
-        val uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            file
-        )
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file
+            )
 
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "application/json"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "application/json"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            val chooser = Intent.createChooser(intent, "导出检测报告")
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(chooser)
+        } catch (e: android.content.ActivityNotFoundException) {
+            android.util.Log.w("ReportExporter", "No app to handle report share", e)
+        } catch (e: IllegalArgumentException) {
+            android.util.Log.e("ReportExporter", "FileProvider URI error", e)
+        } catch (e: Throwable) {
+            android.util.Log.e("ReportExporter", "shareReport failed", e)
         }
-        context.startActivity(Intent.createChooser(intent, "导出检测报告"))
     }
 
     private fun parseScanLayers(result: String): List<String> {

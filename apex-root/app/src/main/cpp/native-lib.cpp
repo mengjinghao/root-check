@@ -380,6 +380,12 @@ Java_com_apex_root_data_jni_NativeBridge_detectCrackingToolsNative(JNIEnv*, jobj
     return detectCrackingTools();
 }
 
+// ─── Frida 检测（layer11_hook.cpp::detectFrida）──────────
+JNIEXPORT jboolean JNICALL
+Java_com_apex_root_data_jni_NativeBridge_detectFridaNative(JNIEnv*, jobject) {
+    return detectFrida();
+}
+
 JNIEXPORT jboolean JNICALL
 Java_com_apex_root_data_jni_NativeBridge_detectMagiskDenyListNative(JNIEnv*, jobject) {
     return detectMagiskDenyList();

@@ -88,7 +88,10 @@ class ApexViewModel(application: Application) : AndroidViewModel(application) {
         val time = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault())
             .format(java.util.Date())
         _uiState.update { state ->
-            state.copy(logs = state.logs + LogEntry(type, time, message))
+            // 修复：日志无限增长 → OOM。限制最多保留 200 条，超出时丢弃最旧的。
+            val newLogs = state.logs + LogEntry(type, time, message)
+            val trimmed = if (newLogs.size > 200) newLogs.drop(newLogs.size - 200) else newLogs
+            state.copy(logs = trimmed)
         }
     }
 

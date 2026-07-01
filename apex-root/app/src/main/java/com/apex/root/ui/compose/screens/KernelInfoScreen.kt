@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.apex.root.ui.compose.*
+import kotlinx.coroutines.withContext
 import java.io.File
 
 data class KernelInfo(
@@ -37,10 +38,13 @@ data class KernelInfo(
 fun KernelInfoScreen(onBack: () -> Unit = {}) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-    // 从设备读取真实信息
-    val kernelInfo = remember {
-        readKernelInfoFromDevice()
+    // 修复：原 remember { readKernelInfoFromDevice() } 在主线程执行文件读取 + exec(getenforce)，
+    // 慢设备上会触发 StrictMode penaltyDeath 或 ANR。改为 LaunchedEffect + IO 线程异步加载。
+    var kernelInfo by remember { mutableStateOf<KernelInfo?>(null) }
+    LaunchedEffect(Unit) {
+        kernelInfo = withContext(kotlinx.coroutines.Dispatchers.IO) { readKernelInfoFromDevice() }
     }
+    val info = kernelInfo
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -71,57 +75,73 @@ fun KernelInfoScreen(onBack: () -> Unit = {}) {
             ) {
                 item { SectionHeader(title = "系统内核") }
 
-                item {
-                    InfoCard(icon = Icons.Default.Memory, title = "内核版本", value = kernelInfo.kernelVersion)
-                }
-                item {
-                    InfoCard(icon = Icons.Default.Storage, title = "架构", value = kernelInfo.architecture)
-                }
-                item {
-                    InfoCard(
-                        icon = Icons.Default.Security,
-                        title = "Syscall 表状态",
-                        value = kernelInfo.syscallTableStatus,
-                        valueColor = AccentMint
-                    )
-                }
-                item {
-                    GlassCard(cornerRadius = 16.dp) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            GlassIconBox(icon = Icons.Default.Storage, accentColor = AccentBlue, size = 32.dp, iconSize = 16.dp)
-                            Spacer(Modifier.width(12.dp))
-                            Text("加载的内核模块", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = TextPrimary)
+                if (info == null) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(28.dp),
+                                strokeWidth = 2.5.dp,
+                                color = AccentPurple
+                            )
                         }
-                        Spacer(Modifier.height(10.dp))
-                        if (kernelInfo.loadedModules.isEmpty()) {
-                            Text("  \u2022 无（或不可读）", fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = TextSecondary)
-                        } else {
-                            kernelInfo.loadedModules.forEach { module ->
-                                Text("  \u2022 $module", fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = TextSecondary)
-                                Spacer(Modifier.height(2.dp))
+                    }
+                } else {
+                    val kernelInfo = info
+                    item {
+                        InfoCard(icon = Icons.Default.Memory, title = "内核版本", value = kernelInfo.kernelVersion)
+                    }
+                    item {
+                        InfoCard(icon = Icons.Default.Storage, title = "架构", value = kernelInfo.architecture)
+                    }
+                    item {
+                        InfoCard(
+                            icon = Icons.Default.Security,
+                            title = "Syscall 表状态",
+                            value = kernelInfo.syscallTableStatus,
+                            valueColor = AccentMint
+                        )
+                    }
+                    item {
+                        GlassCard(cornerRadius = 16.dp) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                GlassIconBox(icon = Icons.Default.Storage, accentColor = AccentBlue, size = 32.dp, iconSize = 16.dp)
+                                Spacer(Modifier.width(12.dp))
+                                Text("加载的内核模块", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = TextPrimary)
+                            }
+                            Spacer(Modifier.height(10.dp))
+                            if (kernelInfo.loadedModules.isEmpty()) {
+                                Text("  \u2022 无（或不可读）", fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = TextSecondary)
+                            } else {
+                                kernelInfo.loadedModules.forEach { module ->
+                                    Text("  \u2022 $module", fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = TextSecondary)
+                                    Spacer(Modifier.height(2.dp))
+                                }
                             }
                         }
                     }
-                }
-                item {
-                    InfoCard(icon = Icons.Default.Security, title = "SELinux", value = kernelInfo.selinuxStatus)
-                }
-                item {
-                    InfoCard(icon = Icons.Default.Security, title = "TEE 版本", value = kernelInfo.teeVersion)
-                }
-                item {
-                    InfoCard(icon = Icons.Default.Code, title = "VBAR_EL1", value = kernelInfo.vbarAddress, mono = true)
-                }
-                item {
-                    InfoCard(icon = Icons.Default.Shield, title = "安全补丁", value = kernelInfo.securityPatch)
-                }
-                item {
-                    InfoCard(
-                        icon = Icons.Default.Visibility,
-                        title = "Kallsyms 访问",
-                        value = if (kernelInfo.kallsymsAccessible) "可访问" else "受限",
-                        valueColor = if (kernelInfo.kallsymsAccessible) AccentMint else ErrorRed
-                    )
+                    item {
+                        InfoCard(icon = Icons.Default.Security, title = "SELinux", value = kernelInfo.selinuxStatus)
+                    }
+                    item {
+                        InfoCard(icon = Icons.Default.Security, title = "TEE 版本", value = kernelInfo.teeVersion)
+                    }
+                    item {
+                        InfoCard(icon = Icons.Default.Code, title = "VBAR_EL1", value = kernelInfo.vbarAddress, mono = true)
+                    }
+                    item {
+                        InfoCard(icon = Icons.Default.Shield, title = "安全补丁", value = kernelInfo.securityPatch)
+                    }
+                    item {
+                        InfoCard(
+                            icon = Icons.Default.Visibility,
+                            title = "Kallsyms 访问",
+                            value = if (kernelInfo.kallsymsAccessible) "可访问" else "受限",
+                            valueColor = if (kernelInfo.kallsymsAccessible) AccentMint else ErrorRed
+                        )
+                    }
                 }
 
                 item { Spacer(Modifier.height(32.dp)) }

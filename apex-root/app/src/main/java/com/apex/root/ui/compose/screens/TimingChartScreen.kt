@@ -94,9 +94,11 @@ fun TimingChartScreen(
                 }
 
                 series.forEach { s ->
+                    // 修复：points 为空时 max()/min()/average() 抛 NoSuchElementException → 闪退
+                    if (s.points.isEmpty()) return@forEach
                     val avg = s.points.average().toLong()
-                    val max = s.points.max()
-                    val min = s.points.min()
+                    val max = s.points.maxOrNull() ?: 0L
+                    val min = s.points.minOrNull() ?: 0L
 
                     GlassCard(cornerRadius = 16.dp, accentLine = s.color) {
                         Text(s.name, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = TextPrimary)
@@ -174,7 +176,10 @@ private fun TimingCanvas(
     Canvas(modifier = modifier.padding(12.dp)) {
         if (series.isEmpty()) return@Canvas
 
-        val maxVal = series.flatMap { it.points }.max().toFloat().coerceAtLeast(1f)
+        // 修复：series 非空但所有 points 为空时，flatMap 结果为空，max() 抛异常
+        val allPoints = series.flatMap { it.points }
+        if (allPoints.isEmpty()) return@Canvas
+        val maxVal = allPoints.max().toFloat().coerceAtLeast(1f)
         val padding = 40f
         val chartWidth = size.width - padding * 2
         val chartHeight = size.height - padding * 2
