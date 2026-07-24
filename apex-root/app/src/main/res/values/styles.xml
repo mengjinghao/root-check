@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.ApexRoot" parent="android:Theme.DeviceDefault.Light.NoActionBar">
+    <!--
+        主题 parent 改为 DeviceDefault (无 .Light 后缀) 的中性主题。
+        原 .Light parent 强制浅色系统 chrome,即使 Compose 切到深色模式,
+        状态栏/导航栏配色仍错乱,且 windowBackground 在深色下会闪白。
+        Compose 侧 ApexRootTheme 负责实际配色,这里只需透明、无 ActionBar 的基底。
+    -->
+    <style name="Theme.ApexRoot" parent="android:Theme.DeviceDefault.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowBackground">?android:attr/colorBackground</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!-- 让内容延伸到状态栏/导航栏后方,与 enableEdgeToEdge() 配合 -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 </resources>

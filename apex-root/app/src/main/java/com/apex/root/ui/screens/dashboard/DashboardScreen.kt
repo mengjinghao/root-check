@@ -182,7 +182,6 @@ fun DashboardScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            val passed = uiState.layersPassed.toFloat() / uiState.layersTotal.toFloat()
                             val failed = uiState.layersTotal - uiState.layersPassed
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 AssistChip(
@@ -310,7 +309,7 @@ fun DashboardScreen(
                             Column {
                                 Text("检测引擎", style = MaterialTheme.typography.bodyMedium)
                                 Text(
-                                    if (uiState.nativeAvailable) "20 层 + 并行引擎" else "未加载",
+                                    if (uiState.nativeAvailable) "23 层 + 并行引擎" else "未加载",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -370,12 +369,17 @@ fun DashboardScreen(
  */
 @Composable
 private fun RiskScoreCard(score: Int) {
+    // 风险分级对齐 README 评分算法:
+    //   0-10  ✅ 安全      绿
+    //   11-30 ⚠️ 轻度风险  黄
+    //   31-60 🟠 中等风险  橙
+    //   61-100 ❌ 高风险   红
     val riskColor by animateColorAsState(
         targetValue = when {
-            score > 60 -> Color(0xFFFF5252)
-            score > 30 -> Color(0xFFFFC107)
-            score > 10 -> Color(0xFF4CAF50)
-            else -> Color(0xFF4CAF50)
+            score > 60 -> Color(0xFFFF5252)   // 高风险 红
+            score > 30 -> Color(0xFFFF9800)   // 中等风险 橙
+            score > 10 -> Color(0xFFFFC107)   // 轻度风险 黄
+            else -> Color(0xFF4CAF50)         // 安全 绿
         },
         label = "riskColor"
     )
