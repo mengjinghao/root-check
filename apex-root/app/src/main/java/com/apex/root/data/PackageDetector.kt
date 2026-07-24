@@ -141,11 +141,13 @@ object PackageDetector {
     fun detect(): DetectionResult {
         val ctx = try {
             com.apex.root.ApexRootApplication.appContext
-        } catch (e: UninitializedPropertyAccessException) {
-            Log.w(TAG, "Application context not yet initialized, skip package detection")
-            return EMPTY_RESULT
         } catch (e: Throwable) {
             Log.w(TAG, "Failed to get application context: ${e.message}")
+            return EMPTY_RESULT
+        }
+        // appContext 现在是 nullable (Application 未就绪时返回 null)
+        if (ctx == null) {
+            Log.w(TAG, "Application context not yet initialized, skip package detection")
             return EMPTY_RESULT
         }
         return detect(ctx)

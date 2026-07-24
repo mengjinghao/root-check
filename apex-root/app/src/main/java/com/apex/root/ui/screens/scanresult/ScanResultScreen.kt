@@ -73,6 +73,7 @@ fun ScanResultScreen(
         }
     ) { padding ->
         val layers = parseLayersFromScanResult(uiState.scanResult)
+        val hasScanData = layers.isNotEmpty() || uiState.deepReport.isNotEmpty()
 
         LazyColumn(
             modifier = Modifier
@@ -134,6 +135,31 @@ fun ScanResultScreen(
                     isExpanded = isExpanded,
                     onToggle = { expandedStates[layer.id] = !isExpanded }
                 )
+            }
+
+            // 空状态提示 — 未扫描时引导用户先去仪表盘执行扫描
+            if (!hasScanData) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "暂无检测结果",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "请先在仪表盘执行扫描,完成后此处将显示各层检测详情。",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
             }
 
             // 深度报告

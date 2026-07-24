@@ -31,22 +31,36 @@ class ApexRootApplication : Application() {
         private const val TAG = "ApexRootApp"
 
         @Volatile
-        private lateinit var instance: ApexRootApplication
+        private var instance: ApexRootApplication? = null
 
         @JvmStatic
         fun get(): ApexRootApplication = instance
+            ?: error("ApexRootApplication not yet created. Access after Application.onCreate().")
 
         /**
          * 全局 application context。在 [onCreate] 中赋值。
          *
          * FIX-D1: 供 PackageDetector / Shizuku 检测等无 Context 入口的检测器使用,
-         * 避免在 Repository / NativeBridge 中到处传递 Context。访问时机需在
-         * Application.onCreate 完成之后;若在极早期 (ContentProvider 初始化阶段)
-         * 访问会抛 UninitializedPropertyAccessException,调用方需自行捕获回退。
+         * 避免在 Repository / NativeBridge 中到处传递 Context。
+         *
+         * 安全修复: 原实现用 `lateinit var instance`,getter 直接 `instance.applicationContext`,
+         * 若在 Application.onCreate 之前 (如 ContentProvider 初始化阶段) 被访问会抛
+         * UninitializedPropertyAccessException 导致启动崩溃。现改为 nullable + 安全 getter,
+         * 未就绪时返回 null,调用方需处理 null (回退到其他 Context 来源或跳过检测)。
          */
         @JvmStatic
-        val appContext: Context
-            get() = instance.applicationContext
+        val appContext: Context?
+            get() = instance?.applicationContext
+
+        /**
+         * 获取 appContext,若未就绪则抛出带清晰提示的 IllegalStateException
+         * (而非 UninitializedPropertyAccessException),便于定位调用时机问题。
+         */
+        @JvmStatic
+        fun requireAppContext(): Context =
+            instance?.applicationContext
+                ?: error("ApexRootApplication.appContext accessed before onCreate() — " +
+                    "move the call after Application creation.")
     }
 
     /**
